@@ -7,10 +7,11 @@ import { FilePlus2 } from 'lucide-react'
 const Header = () => {
     return (
         <>
-            <div className='flex justify-between bg-white shadow-smvp-5 border-b'>
+            <div className='flex justify-between  bg-white shadow-smvp-5 border-b px-4 md:px-8 lg:px-12'>
                 <Link href='/dashboard'>Chat to <span className='text-cyan-600'>Document</span></Link>
                 <SignedIn>
-                    <div className='flex items-center space-x-2'>
+                    <div className="flex items-center space-x-2 px-4 md:px-2 lg:px-2">
+
                         <Button asChild variant="link" className='hidden md:flex'>
                             <Link href="/dashboard/upgrade">Pricing</Link>
                         </Button>
