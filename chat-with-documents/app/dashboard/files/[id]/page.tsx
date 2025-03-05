@@ -1,5 +1,12 @@
-const ChatToFilePage = ({ params }: { params: { id: string } }) => {
-    return <div>ChatToFilePage : {params.id}</div>;
-};
+export default function ChatToFilePage({ params }: { params: { id: string } }) {
+    if (!params.id) {
+        console.error("❌ No ID received in page.tsx");
+        return <div>Error: No ID provided.</div>;
+    }
 
-export default ChatToFilePage;
+    return (
+        <div>
+            ChatToFilePage : {params.id}
+        </div>
+    );
+}

@@ -19,9 +19,21 @@ const FileUploader = () => {
 
   useEffect(() => {
     if (fileId) {
-      router.push(`/dashboard/${fileId}`);
+      console.log("✅ Navigating to:", `/dashboard/files/${fileId}`);
+
+      if (!fileId || typeof fileId !== "string") {
+        console.error("❌ Invalid fileId:", fileId);
+        return;
+      }
+
+      router.push(`/dashboard/files/${fileId}`);
+
+      setTimeout(() => {
+        router.push(`/dashboard/files/${fileId}`);
+      }, 500);
     }
   }, [fileId, router]);
+
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     // Do something with the files
