@@ -41,14 +41,14 @@ const PdfView = ({ url }: { url: string }) => {
         <>
         <div className="flex flex-col items-center justify-center  ">
                 <div className="sticky top-0 z-50 bg-gray-100 p-2 rounded-b-lg items-center justify-center ">
-                <div className="max-w-6xl px-2 grid grid-cols-3 gap-4 text-cyan-600 ">
+                <div className="max-w-6xl px-2 grid grid-cols-6 gap-2 text-cyan-600 ">
                     <Button variant={"outline"}
                             className="shadow-md" 
                             disabled={pageNumber === 1} onClick={() => {
                         if(pageNumber > 1) {setPageNumber(pageNumber - 1)
 
                         }}} >
-                        Previous 
+                        Prev
                     </Button> 
                         <p className="flex items-center justify-center ">
                             {pageNumber} of {numPages}
@@ -64,6 +64,15 @@ const PdfView = ({ url }: { url: string }) => {
                             }}
                         >
                             Next
+                        </Button>
+                        <Button variant="outline" className="shadow-md" onClick={() => setRotation((rotation + 90) % 360)}>
+                            <RotateCw />
+                        </Button>
+                        <Button variant="outline" className="shadow-md" disabled={scale >= 1.5} onClick={() => setScale(scale * 1.2)}>
+                            <ZoomInIcon />
+                        </Button>
+                        <Button variant="outline" className="shadow-md" disabled={scale <= 0.75}  onClick={() => setScale(scale / 1.2)}>
+                            <ZoomOutIcon />
                         </Button>
  
                 </div>
