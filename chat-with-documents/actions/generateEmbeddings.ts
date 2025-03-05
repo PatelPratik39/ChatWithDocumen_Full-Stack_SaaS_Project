@@ -6,7 +6,11 @@ import { revalidatePath } from "next/cache";
 
 export async function generateEmbeddings(docId: string) {
     // @ts-ignore
-    auth().protect();
+    // auth().protect();
+    const user = auth();
+    if (!(await user).userId) {
+        throw new Error("Unauthorized: User is not authenticated");
+    }
 
     // turn a PDF into embeddings
     await generateEmbeddingsInPineconeVectorDatabase(docId);

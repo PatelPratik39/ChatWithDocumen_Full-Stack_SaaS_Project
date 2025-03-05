@@ -1,5 +1,4 @@
-import { log } from './../node_modules/google-gax/node_modules/@grpc/grpc-js/src/logging';
-import { log } from './../node_modules/@grpc/grpc-js/src/logging';
+
 /**
  * 💡 Explanation of Each Import:
         - ChatOpenAI → Used to interact with OpenAI models.
@@ -13,7 +12,7 @@ import { log } from './../node_modules/@grpc/grpc-js/src/logging';
         - HumanMessage, AIMessage → Represents chat messages.
         - pineconeClient → Connection to Pinecone for vector database storage.
  */
-
+// import pdf from "pdf-parse";
 import { ChatOpenAI } from "@langchain/openai";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
@@ -31,10 +30,13 @@ import { adminDb } from "@/firebaseAdmin";
 import {auth} from "@clerk/nextjs/server"
 import { doc } from "firebase/firestore";
 
+
 const model = new ChatOpenAI({  
     openAIApiKey: process.env.OPENAI_API_KEY,
     modelName: 'gpt-4o',
 })
+console.log("✅ Loaded OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "Exists ✅" : "Missing ❌");
+
 export const indexName = "chat-with-documents";
 
 export async function generateDocs(docId: string) {
@@ -50,8 +52,11 @@ export async function generateDocs(docId: string) {
         throw new Error('File not found in Firebase Storage ❌');
     }
 
-    const downloadUrl = firebaseRef.data()?.downloadUrl;
+    const firestoreData = firebaseRef.data();
+    console.log("✅ Firestore Document Data:", firestoreData);
+    const downloadUrl = firebaseRef.data()?.url;
     if(!downloadUrl){
+        console.error("❌ Firestore document found, but no `url` field exists:", firestoreData);
         throw new Error('Download URL not found in Firebase Storage ❌');
     }
 
@@ -62,6 +67,7 @@ export async function generateDocs(docId: string) {
     if (!response.ok) {
         throw new Error('PDF not found in Firebase Storage ❌');
     }
+     console.log("✅ PDF fetched successfully!");
 
     // Load the PDF into a PDFDocument object
     const data = await response.blob();
@@ -76,7 +82,6 @@ export async function generateDocs(docId: string) {
     console.log(`--- Split PDF into ${splitDocs.length} smaller chunks --- ✅`);
 
   return splitDocs;
-
 
 }
 
@@ -105,18 +110,14 @@ export async function generateEmbeddingsInPineconeVectorDatabase(docId: string) 
     const nameSpaceAlreadyExits = await namespaceExists(index, docId);
 
     if(nameSpaceAlreadyExits){
-        console.log(
-            `---  ✅ Index ${indexName} already exists for namespace ${docId}. Skipping creating a new index. ✅ ---`
-        );
+        console.log(`---  ✅ Index ${indexName} already exists for namespace ${docId}. Skipping creating a new index. ✅ ---`);
         pineconeVectorStore = await PineconeStore.fromExistingIndex(embeddings, {
             pineconeIndex: index,
             namespace: docId,
         });
         return pineconeVectorStore;
     } else {
-        console.log(
-            `❌ --- Index ${indexName} does NOT exist for namespace ${docId}. Creating a new index. --- ❌`
-        );
+        console.log( `--- Index ${indexName} does NOT exist for namespace ${docId}. Creating a new index. --- ❌`);
         const splitDocs = await generateDocs(docId);
         console.log(`--- Split PDF into ${splitDocs.length} smaller chunks --- ✅`);
         
@@ -126,7 +127,9 @@ export async function generateEmbeddingsInPineconeVectorDatabase(docId: string) 
         });
         return pineconeVectorStore;
     }
-    return {
-        completed: true
-    }
+
 }
+
+
+
+// NMA

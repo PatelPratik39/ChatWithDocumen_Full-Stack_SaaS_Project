@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "react-hot-toast";
 import { v4 as uuidv4 } from "uuid";
+import { generateEmbeddings } from "@/actions/generateEmbeddings";
 
 export enum StatusText {
   UPLOADING = "Uploading file...",
@@ -66,6 +67,7 @@ const useUpload = () => {
 
         setStatus(StatusText.GENERATING);
         //Generating AI embeddings ... 
+        await generateEmbeddings(fileIdToUploadTo);
         setFileId(fileIdToUploadTo);
       }
     );

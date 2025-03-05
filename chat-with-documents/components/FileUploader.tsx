@@ -73,8 +73,9 @@ const FileUploader = () => {
           {/* Render Status Icon */}
           {statusIcon[status as StatusText]}
           <p className="text-cyan-600 animate-pulse">
-            {status === StatusText.UPLOADING && <div>Uploading...</div>}
+            {status === StatusText.UPLOADING && <span>Uploading...</span>}
           </p>
+
         </div>
       )}
       { !uploadInProgress && (<div

@@ -5,7 +5,7 @@ const UploadPage = () => {
   return (
       <div>
         {/* File Uploader */}
-        <FileUploader />
+        <FileUploader /> 
       </div>
   )
 }
