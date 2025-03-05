@@ -1,16 +1,36 @@
 'use client'
 
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { useDropzone } from 'react-dropzone'
-import {  CircleArrowDown, RocketIcon } from 'lucide-react'
+import { CircleArrowDown, RocketIcon } from 'lucide-react'
+import useUpload from '@/hooks/useUpload'
+import { useRouter } from 'next/router'
 
 const FileUploader = () => {
-    const onDrop = useCallback((acceptedFiles: File[]) => {
+    const { progress, status, fileId, handleUpload } = useUpload();
+    const router = useRouter();
+
+    useEffect(() => {
+        if( fileId) {
+            router.push(`/dahsboard/${fileId}`);
+        }
+
+    }, [fileId, router]);
+
+
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
         // Do something with the files
         console.log(acceptedFiles);
-        
+        const file = acceptedFiles[0];
+        if (file) {
+            await handleUpload(file);
+        } else {
+            // do nothting
+            // toast
+        }
+
     }, [])
-    const { getRootProps, getInputProps, isDragActive, isFocused } = useDropzone({ onDrop })
+    const { getRootProps, getInputProps, isDragActive, isFocused } = useDropzone({ onDrop, maxFiles: 1, accept: { 'application/pdf': [".pdf"] } })
     return (
         <div className='flex flex-col gap-4 items-center max-w-7xl mx-auto'>
             {/* Loading.... */}
@@ -26,8 +46,8 @@ const FileUploader = () => {
                             </>
                         ) : (
                             <>
-                            <CircleArrowDown className='h-20 w-20 animate-bounce' />
-                            <p>Drag and drop some files here, or click to select files</p>
+                                <CircleArrowDown className='h-20 w-20 animate-bounce' />
+                                <p>Drag and drop some files here, or click to select files</p>
                             </>
                         )
                     }

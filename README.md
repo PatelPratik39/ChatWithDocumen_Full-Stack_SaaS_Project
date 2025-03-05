@@ -8,3 +8,6 @@
 5. Clerk
 6. react-dropzon library
 7. Vercel
+8. Pinecone
+9. LangChain
+10. firbase
