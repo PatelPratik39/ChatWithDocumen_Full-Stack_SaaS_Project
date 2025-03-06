@@ -3,7 +3,9 @@ import PdfView from "@/components/PdfView";
 import { adminDb } from "@/firebaseAdmin";
 import { auth } from "@clerk/nextjs/server";
 
-export default async function ChatToFilePage({ params }: { params?: { id: string } }) {
+
+export default async function ChatToFilePage({ params }: { params?: { id?: string } }) {
+    
     if (!params?.id) {
         console.error("❌ Missing file ID in route parameters.");
         return <div>Error: Missing file ID ❌</div>;

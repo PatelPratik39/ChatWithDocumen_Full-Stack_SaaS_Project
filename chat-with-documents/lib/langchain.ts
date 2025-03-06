@@ -1,5 +1,3 @@
-import { doc } from 'firebase/firestore';
-
 /**
  * 💡 Explanation of Each Import:
         - ChatOpenAI → Used to interact with OpenAI models.
@@ -13,6 +11,8 @@ import { doc } from 'firebase/firestore';
         - HumanMessage, AIMessage → Represents chat messages.
         - pineconeClient → Connection to Pinecone for vector database storage.
  */
+
+
 // import pdf from "pdf-parse";
 import { ChatOpenAI } from "@langchain/openai";
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
@@ -193,13 +193,39 @@ const generateLangchainCompletion = async(docId: string, question: string) => {
     // Define Prompt template for answerring questions based on retrieved context
     console.log("--- Define Prompt template for answerring questions based on retrieved context ---");
 
-    const createHistoryAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
+    const historyAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
         ["system", "Answer the user's questions based on the below context :\n\n{context}",],
         ...chatHistory, //insert actual chat history here
         ["user", "{input}"],
-    ])
+    ]);
+
+    // Create a chain that uses the model, retriever, and prompt
+    console.log("--- Create a document combining chain... ---");
+    const historyAwareCombineDocsChain = await createStuffDocumentsChain({
+        llm: model,
+        prompt: historyAwareRetrievalPrompt,
+    });
+    
+    // Create the main retrieval chain that combines the history-aware retriever chain and the document combining chain
+    console.log("--- Create the main retrieval chain that combines the history-aware retriever chain and the document combining chain ---");
+    const conversationalRetrievalChain  = await createRetrievalChain({
+        retriever: historyAwareRetrieverChain,
+        combineDocsChain: historyAwareCombineDocsChain,
+    }); 
+
+    console.log("---Running the chain with a sample conversation... ---");
+    const reply = await conversationalRetrievalChain.invoke({
+        chat_history: chatHistory,
+        input: question
+    })
+    
+//    print the result to the console
+    console.log(reply.answer);
+    return reply.answer;
     
 }
+// Export the model and the run function
+export {model, generateLangchainCompletion};
 
 
 
