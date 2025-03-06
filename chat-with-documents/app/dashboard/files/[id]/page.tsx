@@ -1,3 +1,4 @@
+
 import Chat from "@/components/Chat";
 import PdfView from "@/components/PdfView";
 import { adminDb } from "@/firebaseAdmin";
@@ -5,10 +6,11 @@ import { auth } from "@clerk/nextjs/server";
 
 
 export default async function ChatToFilePage({ params }: { params?: { id?: string } }) {
-    
-    if (!params?.id) {
-        console.error("❌ Missing file ID in route parameters.");
-        return <div>Error: Missing file ID ❌</div>;
+    const id = params?.id;
+
+    if(!id){
+        console.error("❌ No ID provided");
+        return <div>Error: No ID provided ❌</div>;
     }
 
     const { userId } = await auth();
@@ -16,17 +18,15 @@ export default async function ChatToFilePage({ params }: { params?: { id?: strin
         return <div>Error: User not authenticated ❌</div>;
     }
 
-    console.log("✅ Fetching file for user:", userId, "with file ID:", params.id);
-
     const ref = await adminDb
         .collection("users")
         .doc(userId)
         .collection("files")
-        .doc(params.id)
+        .doc(id as string)
         .get();
 
     if (!ref.exists) {
-        console.error("❌ File not found in Firestore for ID:", params.id);
+        console.error("❌ File not found in Firestore for ID:", id);
         return <div>Error: File not found ❌</div>;
     }
 
@@ -42,7 +42,8 @@ export default async function ChatToFilePage({ params }: { params?: { id?: strin
         <div className="grid lg:grid-cols-5 h-full overflow-hidden">
             {/* Right */}
             <div className="col-span-5 lg:col-span-2 overflow-y-auto">{/* chat */}
-                <Chat id={params.id} />
+                {id && <Chat id={id as string} />}
+
             </div>
 
             {/* Left PDF Render */}

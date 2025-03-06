@@ -9,6 +9,7 @@ import { useUser } from '@clerk/nextjs';
 import { ChatMessage } from '@langchain/core/messages';
 import { db } from '@/firebase';
 import { collection, orderBy, query } from 'firebase/firestore';
+import { askQuestion } from '@/actions/askQuestion';
 
 
 export type Message = {
@@ -23,18 +24,39 @@ const Chat = ({ id }: { id: string }) => {
     const { user } = useUser();
 
     const [input, setInput] = useState("");
-    const [message, setMessage] = useState<Message[]>([]);
-    const [isPending, setInPending] = useTransition();
+    const [messages, setMessages] = useState<Message[]>([]);
+    const [isPending, startTransition] = useTransition();
 
     const [snapshot, loading, error] = useCollection(
-        user && query(
+        user?.id && id ?
+        query(
             collection(db, "users", user.id, "files", id, "chat"),
             orderBy("createdAt", "asc")
-        )
+        ): null
     )
     useEffect(() => {
         if (!snapshot) return;
         console.log("Updated snapshot: ", snapshot.docs);
+
+        // get second last message to check if the AI is thinking
+        const lastMessage = [...messages].pop();
+
+
+        if (lastMessage?.role === "ai" && lastMessage.message === "Thinking.....") {
+            // return as this is a dummy placeholder message
+            return;
+        }
+        const newMessages = snapshot.docs.map(doc => {
+            const { role, message, createdAt } = doc.data();
+
+            return {
+                id: doc.id,
+                role,
+                message,
+                createdAt: createdAt.toDate(),
+            }
+        })
+        setMessages(newMessages);
 
     }, [snapshot])
 
@@ -45,7 +67,7 @@ const Chat = ({ id }: { id: string }) => {
         setInput("");
 
         // Optimastic UI update
-        setMessage((prev) => [
+        setMessages((prev) => [
             ...prev,
             {
                 role: "human",
@@ -64,13 +86,13 @@ const Chat = ({ id }: { id: string }) => {
             if (!success) {
 
                 // toast.error(message);
-                setMessage((prev) =>
+                setMessages((prev) =>
                     prev.slice(0, prev.length - 1).concat([{
                         role: "ai",
                         message: `Whoops...${message}`,
                         createdAt: new Date(),
                     }]
-                ))
+                    ))
             }
         })
 
@@ -82,6 +104,11 @@ const Chat = ({ id }: { id: string }) => {
                 {/* Chat Contents */}
                 <div className='flex-1 w-full'>
                     {/* Chat Messages */}
+                    {messages.map((message) => (
+                        <div key={message.id || Math.random()}>
+                            <p>{message.message}</p>
+                        </div>
+                    ))}
 
                 </div>
                 <form onSubmit={handleSubmit} className="flex sticky bottom-0 space-x-2 p-5 bg-cyan-600/75" >
