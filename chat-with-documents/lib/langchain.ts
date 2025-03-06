@@ -1,3 +1,4 @@
+import { doc } from 'firebase/firestore';
 
 /**
  * 💡 Explanation of Each Import:
@@ -35,9 +36,36 @@ const model = new ChatOpenAI({
     openAIApiKey: process.env.OPENAI_API_KEY,
     modelName: 'gpt-4o',
 })
-console.log("✅ Loaded OPENAI_API_KEY:", process.env.OPENAI_API_KEY ? "Exists ✅" : "Missing ❌");
 
 export const indexName = "chat-with-documents";
+
+async function fetchMessageFromDB(docId: string) {
+    const {userId} = await auth();
+    if(!userId){
+        throw new Error('User not found');
+    }
+
+    console.log("--- Fetching the chat history from Firestore ---");
+    const chats = await adminDb
+    .collection(`users`)
+    .doc(userId)
+    .collection('files')
+    .doc(docId)
+    .collection('chat')
+    .orderBy('createdAt')
+    // .limit(LIMIT)
+    .get();
+    
+    const chatHistory = chats.docs.map((doc) => 
+        doc.data().role === 'human'
+        ? new HumanMessage(doc.data().message)
+        : new AIMessage(doc.data().message)
+    );
+    console.log(`---fetched last ${chatHistory.length} messages from Firestore  successfully --- ✅`);
+    console.log(chatHistory.map((message) => message.content.toString()));
+
+    return chatHistory;
+}
 
 export async function generateDocs(docId: string) {
 
@@ -127,9 +155,51 @@ export async function generateEmbeddingsInPineconeVectorDatabase(docId: string) 
         });
         return pineconeVectorStore;
     }
+}
 
+const generateLangchainCompletion = async(docId: string, question: string) => {
+    let pineconeVectorStore;
+    pineconeVectorStore = await generateEmbeddingsInPineconeVectorDatabase(docId);
+    if(!pineconeVectorStore){
+        throw new Error('PineconeVectorStore is not found');
+    }
+    // create retriever
+    console.log("--- Create Retriever ---");
+    const retriever = pineconeVectorStore.asRetriever(3);
+    
+    // Fetch the chat histpory from Firestore
+    const chatHistory = await fetchMessageFromDB(docId);
+
+    // Define a Prompt template for genrating search queries based on chat history
+    console.log("--- Define a Prompt template for genrating search queries based on chat history ---");
+
+    const historyAwarePrompt = ChatPromptTemplate.fromMessages([
+        ...chatHistory,  //insert actual chat history here
+        ["user", "{input}"],
+        [
+            "user",
+            "Given the above conversation, generate a search query to look up in oreder to get information relavant to the conversation",
+        ],
+    ]);
+    // Create a hostory-aware retreiver chain that uses the model, retriever, and prompt
+    console.log("--- Create a hostory-aware retreiver chain that uses the model, retriever, and prompt ---");
+
+    const historyAwareRetrieverChain = await createHistoryAwareRetriever({
+        llm:model,
+        retriever,
+        rephrasePrompt: historyAwarePrompt,
+    });
+
+    // Define Prompt template for answerring questions based on retrieved context
+    console.log("--- Define Prompt template for answerring questions based on retrieved context ---");
+
+    const createHistoryAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
+        ["system", "Answer the user's questions based on the below context :\n\n{context}",],
+        ...chatHistory, //insert actual chat history here
+        ["user", "{input}"],
+    ])
+    
 }
 
 
 
-// NMA
