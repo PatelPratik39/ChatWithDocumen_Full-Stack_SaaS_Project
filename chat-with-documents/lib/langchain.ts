@@ -45,14 +45,15 @@ async function fetchMessageFromDB(docId: string) {
         throw new Error('User not found');
     }
 
-    console.log("--- Fetching the chat history from Firestore ---");
+    console.log("✅ [Step 1] Fetching the chat history from Firestore...");
+    // const LIMIT = 10;
     const chats = await adminDb
     .collection(`users`)
     .doc(userId)
     .collection('files')
     .doc(docId)
     .collection('chat')
-    .orderBy('createdAt')
+    .orderBy('createdAt', "desc")
     // .limit(LIMIT)
     .get();
     
@@ -61,8 +62,10 @@ async function fetchMessageFromDB(docId: string) {
         ? new HumanMessage(doc.data().message)
         : new AIMessage(doc.data().message)
     );
-    console.log(`---fetched last ${chatHistory.length} messages from Firestore  successfully --- ✅`);
-    console.log(chatHistory.map((message) => message.content.toString()));
+    console.log(`✅ [Step 1] Fetched last ${chatHistory.length} messages from Firestore successfully`);
+    // console.log(chatHistory.map((message) => message.content.toString()));
+    console.log(chatHistory.map((message) => message?.content?.toString() || "[Empty Message]"));
+
 
     return chatHistory;
 }
@@ -73,7 +76,7 @@ export async function generateDocs(docId: string) {
     if(!userId){
         throw new Error('User not found ❌');
     }
-    console.log(`--- Fetching the download URL from Firebase Storage --- ✅`);
+    console.log("✅ [Step 2] Fetching the document download URL from Firestore...");
 
     const firebaseRef = await adminDb.collection('users').doc(userId).collection("files").doc(docId).get();
     if(!firebaseRef.exists){
@@ -81,33 +84,34 @@ export async function generateDocs(docId: string) {
     }
 
     const firestoreData = firebaseRef.data();
-    console.log("✅ Firestore Document Data:", firestoreData);
+    console.log("✅ [Step 2] Firestore Document Data:", firestoreData);
     const downloadUrl = firebaseRef.data()?.url;
     if(!downloadUrl){
         console.error("❌ Firestore document found, but no `url` field exists:", firestoreData);
         throw new Error('Download URL not found in Firebase Storage ❌');
     }
 
-    console.log(`--- Download URL fetched Successfully: ${downloadUrl} --- ✅`);
+    console.log(`✅ [Step 2] Download URL fetched Successfully: ${downloadUrl}`);
 
     // Fetch the PDF from the download URL
     const response = await fetch(downloadUrl);
     if (!response.ok) {
         throw new Error('PDF not found in Firebase Storage ❌');
     }
-     console.log("✅ PDF fetched successfully!");
+    console.log("✅ [Step 2] PDF fetched successfully!");
 
     // Load the PDF into a PDFDocument object
     const data = await response.blob();
     const loader = new PDFLoader(data);
     const docs = await loader.load();
+    console.log("✅ [Step 2] PDF Loaded");
 
     // Split the PDF into smaller chunks
     console.log(`--- Splitting the PDF into smaller chunks --- ✅`);
     const splitter = new RecursiveCharacterTextSplitter();
 
     const splitDocs = await splitter.splitDocuments(docs);
-    console.log(`--- Split PDF into ${splitDocs.length} smaller chunks --- ✅`);
+   console.log(`✅ [Step 2] Split PDF into ${splitDocs.length} smaller chunks`);
 
   return splitDocs;
 
@@ -116,36 +120,36 @@ export async function generateDocs(docId: string) {
 async function namespaceExists(index: Index<RecordMetadata>, namespace: string) {
     if(namespace === null) throw new Error('Namespace is not provided!!!!');
 
+    console.log(`[Step 3] Checking if namespace exists: ${namespace}`);
     const {namespaces} = await index.describeIndexStats();
     return namespaces?.[namespace] !=  undefined;
 
 }
 
+/** STEP 4: Generate Embeddings & Store in Pinecone */
 export async function generateEmbeddingsInPineconeVectorDatabase(docId: string) {
     const {userId} = await auth();
 
     if(!userId){
         throw new Error('User not found');
     }
-
-    let pineconeVectorStore;
-    console.log("--- Generate Embeddings for the split documents ---");
+    console.log("[Step 4] Generating Embeddings for the document...");
     
     const embeddings = new OpenAIEmbeddings();
-
     // need to make connection to pincone
     const index = pineconeClient.index(indexName);
     const nameSpaceAlreadyExits = await namespaceExists(index, docId);
 
+    let pineconeVectorStore;
     if(nameSpaceAlreadyExits){
-        console.log(`---  ✅ Index ${indexName} already exists for namespace ${docId}. Skipping creating a new index. ✅ ---`);
+        console.log(`[Step 4] Index ${indexName} already exists for namespace ${docId}. Skipping creation.`);
         pineconeVectorStore = await PineconeStore.fromExistingIndex(embeddings, {
             pineconeIndex: index,
             namespace: docId,
         });
         return pineconeVectorStore;
     } else {
-        console.log( `--- Index ${indexName} does NOT exist for namespace ${docId}. Creating a new index. --- ❌`);
+        console.log(`❌ [Step 4] Namespace ${docId} does NOT exist. Creating new embeddings.`);
         const splitDocs = await generateDocs(docId);
         console.log(`--- Split PDF into ${splitDocs.length} smaller chunks --- ✅`);
         
@@ -157,33 +161,39 @@ export async function generateEmbeddingsInPineconeVectorDatabase(docId: string) 
     }
 }
 
+/** STEP 5: Generate Langchain Completion */
+
 const generateLangchainCompletion = async(docId: string, question: string) => {
-    let pineconeVectorStore;
-    pineconeVectorStore = await generateEmbeddingsInPineconeVectorDatabase(docId);
+    console.log("[Step 5] Running Langchain Completion...");
+
+    // let pineconeVectorStore;
+    const pineconeVectorStore = await generateEmbeddingsInPineconeVectorDatabase(docId);
     if(!pineconeVectorStore){
         throw new Error('PineconeVectorStore is not found');
     }
     // create retriever
-    console.log("--- Create Retriever ---");
-    const retriever = pineconeVectorStore.asRetriever(3);
+    console.log("[Step 5] Creating Retriever...");
+    const retriever = pineconeVectorStore.asRetriever();
     
     // Fetch the chat histpory from Firestore
+    console.log("[Step 5] Fetching chat history...");
     const chatHistory = await fetchMessageFromDB(docId);
 
     // Define a Prompt template for genrating search queries based on chat history
     console.log("--- Define a Prompt template for genrating search queries based on chat history ---");
-
+    console.log("[Step 5] Creating History-Aware Retriever...");
     const historyAwarePrompt = ChatPromptTemplate.fromMessages([
-        ...chatHistory,  //insert actual chat history here
+        ...chatHistory,
         ["user", "{input}"],
         [
             "user",
-            "Given the above conversation, generate a search query to look up in oreder to get information relavant to the conversation",
+            "Given the above conversation, generate a search query to look up in order to get relevant information.",
         ],
     ]);
     // Create a hostory-aware retreiver chain that uses the model, retriever, and prompt
-    console.log("--- Create a hostory-aware retreiver chain that uses the model, retriever, and prompt ---");
+    // console.log("--- Create a hostory-aware retreiver chain that uses the model, retriever, and prompt ---");
 
+    console.log("[Step 5] Creating a hostory-aware Retriever Chain...");
     const historyAwareRetrieverChain = await createHistoryAwareRetriever({
         llm:model,
         retriever,
@@ -191,36 +201,37 @@ const generateLangchainCompletion = async(docId: string, question: string) => {
     });
 
     // Define Prompt template for answerring questions based on retrieved context
-    console.log("--- Define Prompt template for answerring questions based on retrieved context ---");
+    // console.log("--- Define Prompt template for answerring questions based on retrieved context ---");
 
+    console.log("[Step 5] Creating Prompt for Answer Generation...");
     const historyAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
-        ["system", "Answer the user's questions based on the below context :\n\n{context}",],
-        ...chatHistory, //insert actual chat history here
+        ["system", "Answer the user's questions based on the below context:\n\n{context}"],
+        ...chatHistory,
         ["user", "{input}"],
     ]);
 
     // Create a chain that uses the model, retriever, and prompt
-    console.log("--- Create a document combining chain... ---");
+    console.log("[Step 5] Creating Document Combining Chain...");
     const historyAwareCombineDocsChain = await createStuffDocumentsChain({
         llm: model,
         prompt: historyAwareRetrievalPrompt,
     });
     
-    // Create the main retrieval chain that combines the history-aware retriever chain and the document combining chain
-    console.log("--- Create the main retrieval chain that combines the history-aware retriever chain and the document combining chain ---");
-    const conversationalRetrievalChain  = await createRetrievalChain({
+    console.log("[Step 5] Creating Conversational Retrieval Chain...");
+    const conversationalRetrievalChain = await createRetrievalChain({
         retriever: historyAwareRetrieverChain,
         combineDocsChain: historyAwareCombineDocsChain,
-    }); 
+    });
 
-    console.log("---Running the chain with a sample conversation... ---");
+    console.log("[Step 5] Running Final Retrieval Chain...");
     const reply = await conversationalRetrievalChain.invoke({
         chat_history: chatHistory,
-        input: question
-    })
-    
-//    print the result to the console
-    console.log(reply.answer);
+        input: question,
+    });
+
+    console.log("[Step 5] 🤖 AI Response: ", reply.answer);
+    // console.log("[Step 5] 🤖 AI Response: ", reply?.answer ?? "❌ No response received from AI.");
+
     return reply.answer;
     
 }

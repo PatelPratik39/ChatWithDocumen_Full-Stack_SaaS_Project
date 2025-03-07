@@ -5,21 +5,26 @@ import { Message } from '@/components/Chat';
 import { adminDb } from '@/firebaseAdmin';
 import { generateLangchainCompletion } from '@/lib/langchain';
 import { auth } from '@clerk/nextjs/server';
-// import {generateLangchainCompletion} from "@/lib/langchain";
-import { AIMessage } from '@langchain/core/messages';
 
-const FREE_LIMIT = 3;
-const PRO_LIMIT = 100;
+
+// const FREE_LIMIT = 3;
+// const PRO_LIMIT = 100;
 
 export async function askQuestion(id: string, question: string) {
     auth();
 
     const {userId} = await auth();
-    const chatRef = adminDb.collection('users').doc(userId!).collection('files').doc(id).collection('chat');
+    const chatRef = adminDb
+                .collection('users')
+                .doc(userId!)
+                .collection('files')
+                .doc(id)
+                .collection('chat');
 
-    // howmany user messages are in the chat
+    // how many user messages are in the chat
     const chatSnapshot = await chatRef.get();
-    const chatMessages = chatSnapshot.docs.filter( (doc) => doc.data().role === 'human');
+    const userMessages = chatSnapshot.docs.filter( 
+        (doc) => doc.data().role === 'human');
 
     // limit the messages for PRO/Free users
 
@@ -33,6 +38,7 @@ export async function askQuestion(id: string, question: string) {
 
     // Generate AI Response
     const reply = await generateLangchainCompletion(id,question);
+
     const aiMessage : Message = {
         role: 'ai',
         message: reply,
@@ -40,10 +46,11 @@ export async function askQuestion(id: string, question: string) {
     };
 
     await chatRef.add(aiMessage);
-
     
     return {
         success: true,
-        message: reply
+        message: null
     }
 }
+
+

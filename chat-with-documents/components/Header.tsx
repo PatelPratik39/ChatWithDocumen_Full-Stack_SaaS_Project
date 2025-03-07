@@ -7,21 +7,21 @@ import { FilePlus2 } from 'lucide-react'
 const Header = () => {
     return (
         <>
-            <div className='flex justify-between  bg-white shadow-smvp-5 border-b px-4 md:px-8 lg:px-12'>
-                <Link href='/dashboard'>Chat to <span className='text-cyan-600'>Document</span></Link>
+            <div className='flex justify-between items-center h-20 bg-white shadow-md border-b px-4 md:px-8 lg:px-12 py-4"'>
+                <Link href='/dashboard'>Chat to <span className='text-cyan-600 text-lg font-semibold'>Document</span></Link>
                 <SignedIn>
                     <div className="flex items-center space-x-2 px-4 md:px-2 lg:px-2">
 
-                        <Button asChild variant="link" className='hidden md:flex'>
+                        <Button asChild variant="link" className='hidden md:flex text-lg '>
                             <Link href="/dashboard/upgrade">Pricing</Link>
                         </Button>
-                        <Button asChild variant="outline" >
+                        <Button asChild variant="outline" className='text-cyan-600 text-lg  border-cyan-600' >
                             <Link href="/dashboard">My Documents</Link>
                         </Button>
-                        <Button asChild variant="outline" >
-                            <Link href="/dashboard/upload"><FilePlus2 className='text-cyan-600'/></Link>
+                        <Button asChild variant="outline" className='text-cyan-600 text-lg font-semibold border-cyan-600' >
+                            <Link href="/dashboard/upload"><FilePlus2 className='text-cyan-600 border-cyan-600'/></Link>
                         </Button>
-                        {/* Upgradr Button */}
+                        {/* Upgrade Button */}
                         <UserButton />
                     </div>
                 </SignedIn>

@@ -8,7 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 export default async function ChatToFilePage({ params }: { params?: { id?: string } }) {
     const id = params?.id;
 
-    if(!id){
+    if (!id) {
         console.error("❌ No ID provided");
         return <div>Error: No ID provided ❌</div>;
     }
@@ -20,7 +20,7 @@ export default async function ChatToFilePage({ params }: { params?: { id?: strin
 
     const ref = await adminDb
         .collection("users")
-        .doc(userId)
+        .doc(userId!)
         .collection("files")
         .doc(id as string)
         .get();
@@ -42,7 +42,8 @@ export default async function ChatToFilePage({ params }: { params?: { id?: strin
         <div className="grid lg:grid-cols-5 h-full overflow-hidden">
             {/* Right */}
             <div className="col-span-5 lg:col-span-2 overflow-y-auto">{/* chat */}
-                {id && <Chat id={id as string} />}
+                {/* {id && <Chat id={id as string} />} */}
+                <Chat id={id as string} />
 
             </div>
 
@@ -53,3 +54,57 @@ export default async function ChatToFilePage({ params }: { params?: { id?: strin
         </div>
     );
 }
+
+
+
+
+
+
+
+//  <div className='flex flex-col h-full overflow-scroll'>
+{/* Chat Contents *
+        //         <div className='flex-1 w-full'>
+        //             {/* Chat Messages */}
+//             {loading ? (
+//                 <div className='flex justify-center items-center'>
+//                     <Loader2Icon className='h-20 w-20 animate-spin text-cyan-600 mt-20' />
+//                 </div>
+//             ) : (
+//                     <div className="flex flex-col space-y-2 px-4">
+//                         {messages.length === 0 && (
+//                             <ChatMessage
+//                                 key={"placeholder"}
+//                                 message={{
+//                                     role: "ai",
+//                                     message: "Ask me anything about this document!!",
+//                                     createdAt: new Date(),
+//                                 }}
+//                             />
+//                         )}
+//                         {messages.map((message, index) => (
+//                             <ChatMessage key={message.id || index} message={message} />
+//                         ))}
+//                         <div ref={bottomOfChatRef} />
+//                     </div>
+//             )}
+
+//         </div>
+//         <form onSubmit={handleSubmit} className="flex sticky bottom-0 space-x-2 p-5 bg-cyan-600/75" >
+//             <Input
+//                 className="bg-white text-black p-3 rounded-md shadow-md w-full focus:outline-none"
+//                 placeholder="Ask a question.....❓"
+//                 value={input}
+//                 onChange={(e) => setInput(e.target.value)}
+//             />
+
+//             <Button type='submit' disabled={!input || isPending} >
+//                 {isPending ? (
+//                     <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+//                 ) : (
+//                     "Ask"
+//                 )}
+
+//             </Button>
+//         </form>
+//     </div >
+// </>
