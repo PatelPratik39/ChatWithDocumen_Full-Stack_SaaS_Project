@@ -31,14 +31,18 @@ const ChatMessage = ({message}: {message: Message}) => {
                 )}
             </div>
         </div>
-        <div className={`chat-bubble prose ${isHuman && "bg-cyan-600 text-white"}`}>
+          <div
+              className={`chat-bubble prose p-4 ${isHuman
+                      ? "bg-gradient-to-r from-cyan-500 to-blue-400 text-white" // Gradient for User messages
+                      : "bg-gradient-to-r from-gray-200 to-gray-400 text-black" // Gradient for AI messages
+                  }`}
+          >
                 {message.message === "Thinking..." ? (
                     <div className="flex items-center justify-center">
-                        <Loader2Icon className="animate-spin h-7 w-7 text-cyan-600" />
+                        <Loader2Icon className="animate-spin h-8 w-8 text-cyan-600" />
                     </div>
                 ) : (
                       <div className="prose">
-
                         <Markdown >{message.message}</Markdown>
                     </div>
                 )}

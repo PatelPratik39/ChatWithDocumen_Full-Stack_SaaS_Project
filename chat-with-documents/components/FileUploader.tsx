@@ -45,7 +45,7 @@ const FileUploader = () => {
       // do nothting
       // toast
     }
-  }, []);
+  }, [handleUpload]);
 
   const statusIcon = {
     [StatusText.UPLOADING]: <RocketIcon className="h-20 w-20 text-cyan-600" />,

@@ -163,80 +163,155 @@ export async function generateEmbeddingsInPineconeVectorDatabase(docId: string) 
 
 /** STEP 5: Generate Langchain Completion */
 
-const generateLangchainCompletion = async(docId: string, question: string) => {
-    console.log("[Step 5] Running Langchain Completion...");
+const generateLangchainCompletion = async (docId: string, question: string) => {
+    console.log("🚀 [Step 1] Running Langchain Completion...");
 
-    // let pineconeVectorStore;
+    // ✅ Step 1: Generate Embeddings
+    console.log("🔍 [Step 2] Generating embeddings in Pinecone...");
     const pineconeVectorStore = await generateEmbeddingsInPineconeVectorDatabase(docId);
-    if(!pineconeVectorStore){
-        throw new Error('PineconeVectorStore is not found');
-    }
-    // create retriever
-    console.log("[Step 5] Creating Retriever...");
-    const retriever = pineconeVectorStore.asRetriever();
     
-    // Fetch the chat histpory from Firestore
-    console.log("[Step 5] Fetching chat history...");
-    const chatHistory = await fetchMessageFromDB(docId);
+    if (!pineconeVectorStore) {
+        throw new Error("❌ Pinecone Vector Store not found.");
+    }
 
-    // Define a Prompt template for genrating search queries based on chat history
-    console.log("--- Define a Prompt template for genrating search queries based on chat history ---");
-    console.log("[Step 5] Creating History-Aware Retriever...");
+    // ✅ Step 2: Create Retriever
+    console.log("📚 [Step 3] Creating Retriever...");
+    const retriever = pineconeVectorStore.asRetriever();
+
+    // ✅ Step 3: Fetch Chat History
+    console.log("📜 [Step 4] Fetching chat history...");
+    const chatHistory = await fetchMessageFromDB(docId) || [];
+    
+    if (!Array.isArray(chatHistory)) {
+        console.warn("⚠️ Chat history is invalid or missing. Defaulting to empty history.");
+    }
+
+    // ✅ Step 4: Create History-Aware Retriever
+    console.log("📝 [Step 5] Creating History-Aware Retriever...");
     const historyAwarePrompt = ChatPromptTemplate.fromMessages([
         ...chatHistory,
         ["user", "{input}"],
-        [
-            "user",
-            "Given the above conversation, generate a search query to look up in order to get relevant information.",
-        ],
+        ["user", "Given the above conversation, generate a search query to look up in order to get relevant information."]
     ]);
-    // Create a hostory-aware retreiver chain that uses the model, retriever, and prompt
-    // console.log("--- Create a hostory-aware retreiver chain that uses the model, retriever, and prompt ---");
 
-    console.log("[Step 5] Creating a hostory-aware Retriever Chain...");
+    console.log("🔗 [Step 6] Creating History-Aware Retriever Chain...");
     const historyAwareRetrieverChain = await createHistoryAwareRetriever({
-        llm:model,
+        llm: model,
         retriever,
         rephrasePrompt: historyAwarePrompt,
     });
 
-    // Define Prompt template for answerring questions based on retrieved context
-    // console.log("--- Define Prompt template for answerring questions based on retrieved context ---");
-
-    console.log("[Step 5] Creating Prompt for Answer Generation...");
+    // ✅ Step 5: Create Prompt for Answer Generation
+    console.log("🛠️ [Step 7] Creating Answer Generation Prompt...");
     const historyAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
         ["system", "Answer the user's questions based on the below context:\n\n{context}"],
         ...chatHistory,
         ["user", "{input}"],
     ]);
 
-    // Create a chain that uses the model, retriever, and prompt
-    console.log("[Step 5] Creating Document Combining Chain...");
+    // ✅ Step 6: Create Document Combining Chain
+    console.log("📑 [Step 8] Creating Document Combining Chain...");
     const historyAwareCombineDocsChain = await createStuffDocumentsChain({
         llm: model,
         prompt: historyAwareRetrievalPrompt,
     });
-    
-    console.log("[Step 5] Creating Conversational Retrieval Chain...");
+
+    // ✅ Step 7: Create Conversational Retrieval Chain
+    console.log("🔗 [Step 9] Creating Conversational Retrieval Chain...");
     const conversationalRetrievalChain = await createRetrievalChain({
         retriever: historyAwareRetrieverChain,
         combineDocsChain: historyAwareCombineDocsChain,
     });
 
-    console.log("[Step 5] Running Final Retrieval Chain...");
+    // ✅ Step 8: Execute AI Retrieval
+    console.log("💡 [Step 10] Running AI Retrieval Chain...");
     const reply = await conversationalRetrievalChain.invoke({
         chat_history: chatHistory,
         input: question,
     });
 
-    console.log("[Step 5] 🤖 AI Response: ", reply.answer);
-    // console.log("[Step 5] 🤖 AI Response: ", reply?.answer ?? "❌ No response received from AI.");
+    // ✅ Handle response
+    const finalResponse = reply?.answer ?? "❌ No response generated.";
+    console.log("🤖 [Step 11] AI Response: ", finalResponse);
 
-    return reply.answer;
-    
-}
-// Export the model and the run function
+    return finalResponse;
+};
 export {model, generateLangchainCompletion};
+
+// const generateLangchainCompletion = async(docId: string, question: string) => {
+//     console.log("[Step 5] Running Langchain Completion...");
+
+//     // let pineconeVectorStore;
+//     const pineconeVectorStore = await generateEmbeddingsInPineconeVectorDatabase(docId);
+//     if(!pineconeVectorStore){
+//         throw new Error('PineconeVectorStore is not found');
+//     }
+//     // create retriever
+//     console.log("[Step 5] Creating Retriever...");
+//     const retriever = pineconeVectorStore.asRetriever();
+    
+//     // Fetch the chat histpory from Firestore
+//     console.log("[Step 5] Fetching chat history...");
+//     const chatHistory = await fetchMessageFromDB(docId);
+
+//     // Define a Prompt template for genrating search queries based on chat history
+//     console.log("--- Define a Prompt template for genrating search queries based on chat history ---");
+//     console.log("[Step 5] Creating History-Aware Retriever...");
+//     const historyAwarePrompt = ChatPromptTemplate.fromMessages([
+//         ...chatHistory,
+//         ["user", "{input}"],
+//         [
+//             "user",
+//             "Given the above conversation, generate a search query to look up in order to get relevant information.",
+//         ],
+//     ]);
+//     // Create a hostory-aware retreiver chain that uses the model, retriever, and prompt
+//     // console.log("--- Create a hostory-aware retreiver chain that uses the model, retriever, and prompt ---");
+
+//     console.log("[Step 5] Creating a hostory-aware Retriever Chain...");
+//     const historyAwareRetrieverChain = await createHistoryAwareRetriever({
+//         llm:model,
+//         retriever,
+//         rephrasePrompt: historyAwarePrompt,
+//     });
+
+//     // Define Prompt template for answerring questions based on retrieved context
+//     // console.log("--- Define Prompt template for answerring questions based on retrieved context ---");
+
+//     console.log("[Step 5] Creating Prompt for Answer Generation...");
+//     const historyAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
+//         ["system", "Answer the user's questions based on the below context:\n\n{context}"],
+//         ...chatHistory,
+//         ["user", "{input}"],
+//     ]);
+
+//     // Create a chain that uses the model, retriever, and prompt
+//     console.log("[Step 5] Creating Document Combining Chain...");
+//     const historyAwareCombineDocsChain = await createStuffDocumentsChain({
+//         llm: model,
+//         prompt: historyAwareRetrievalPrompt,
+//     });
+    
+//     console.log("[Step 5] Creating Conversational Retrieval Chain...");
+//     const conversationalRetrievalChain = await createRetrievalChain({
+//         retriever: historyAwareRetrieverChain,
+//         combineDocsChain: historyAwareCombineDocsChain,
+//     });
+
+//     console.log("[Step 5] Running Final Retrieval Chain...");
+//     const reply = await conversationalRetrievalChain.invoke({
+//         chat_history: chatHistory,
+//         input: question,
+//     });
+
+//     console.log("[Step 5] 🤖 AI Response: ", reply.answer);
+//     // console.log("[Step 5] 🤖 AI Response: ", reply?.answer ?? "❌ No response received from AI.");
+
+//     return reply.answer;
+    
+// }
+// Export the model and the run function
+// export {model, generateLangchainCompletion};
 
 
 

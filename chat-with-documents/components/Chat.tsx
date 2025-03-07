@@ -92,61 +92,113 @@ const Chat = ({ id }: { id: string }) => {
         });
     };
 
-return (
-        <div className='flex flex-col h-full overflow-scroll'>
-
+    return (
+        <div className="flex flex-col h-full overflow-hidden bg-gradient-to-b from-gray-200 via-white to-gray-100">
             {/* Chat Content */}
-            <div className=' flex-1 w-full'>
-                {/* chat messages */}
-
-            
+            <div className="flex-1 w-full overflow-y-auto p-5">
                 {loading ? (
-                <div className='flex justify-center items-center'>
-                    <Loader2Icon className='animate-spin h-20 w-20 text-cyan-600 mt-20' />
-                </div>
-                    
-                ):(
-                <div className='p-5'>
+                    <div className="flex justify-center items-center">
+                        <Loader2Icon className="animate-spin h-20 w-20 text-cyan-600 mt-20" />
+                    </div>
+                ) : (
+                    <div>
                         {messages.length === 0 && (
-                            <ChatMessage key={"placeholder"}
+                            <ChatMessage
+                                key={"placeholder"}
                                 message={{
                                     role: "ai",
-                                    message: "Ask me anything about this document",
+                                    message: "Ask me anything about this document 😃",
                                     createdAt: new Date(),
-                                }} />
+                                }}
+                            />
                         )}
                         {messages.map((message, index) => (
                             <ChatMessage key={index} message={message} />
                         ))}
-                        <div ref={bottomOfChatRef} /> 
-                </div>
+                        <div ref={bottomOfChatRef} />
+                    </div>
                 )}
-
             </div>
 
             {/* Chat Input */}
             <form
                 onSubmit={handleSubmit}
-                className='flex sticky bottom-0 space-x-2 p-5 bg-cyan-600/75 border-t border-cyan-600'
+                className="flex sticky bottom-0 space-x-2 p-5 bg-gradient-to-r from-cyan-600 to-blue-400 border-t border-cyan-700"
             >
                 <Input
-                    placeholder='Ask a question'
+                    placeholder="Ask a question"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    className='border bg-white border-cyan-600'
+                    className="border bg-white border-cyan-600 rounded-lg px-4 py-2"
                 />
-                <Button type='submit' disabled={!input || isPending}>
-                    {isPending ? (
-                        <Loader2Icon className='animate-spin h-5 w-5' />
-                    ) : (
-                        "Ask"
-                    )}
+                <Button
+                    type="submit"
+                    disabled={!input || isPending}
+                    className="bg-gradient-to-l from-cyan-500 to-blue-600 text-white shadow-lg" 
+                >
+                    {isPending ? <Loader2Icon className="animate-spin h-5 w-5" /> : "Ask"}
                 </Button>
             </form>
-
         </div>
-    )
-}
+    );
+};
 
-export default Chat
+export default Chat;
 
+// return (
+//         <div className='flex flex-col h-full overflow-scroll'>
+
+//             {/* Chat Content */}
+//             <div className=' flex-1 w-full'>
+//                 {/* chat messages */}
+
+            
+//                 {loading ? (
+//                 <div className='flex justify-center items-center'>
+//                     <Loader2Icon className='animate-spin h-20 w-20 text-cyan-600 mt-20' />
+//                 </div>
+                    
+//                 ):(
+//                 <div className='p-5'>
+//                         {messages.length === 0 && (
+//                             <ChatMessage key={"placeholder"}
+//                                 message={{
+//                                     role: "ai",
+//                                     message: "Ask me anything about this document",
+//                                     createdAt: new Date(),
+//                                 }} />
+//                         )}
+//                         {messages.map((message, index) => (
+//                             <ChatMessage key={index} message={message} />
+//                         ))}
+//                         <div ref={bottomOfChatRef} /> 
+//                 </div>
+//                 )}
+
+//             </div>
+
+//             {/* Chat Input */}
+//             <form
+//                 onSubmit={handleSubmit}
+//                 className='flex sticky bottom-0 space-x-2 p-5 bg-cyan-600/75 border-t border-cyan-600'
+//             >
+//                 <Input
+//                     placeholder='Ask a question'
+//                     value={input}
+//                     onChange={(e) => setInput(e.target.value)}
+//                     className='border bg-white border-cyan-600'
+//                 />
+//                 <Button type='submit' disabled={!input || isPending}>
+//                     {isPending ? (
+//                         <Loader2Icon className='animate-spin h-5 w-5' />
+//                     ) : (
+//                         "Ask"
+//                     )}
+//                 </Button>
+//             </form>
+
+//         </div>
+//     )
+// }
+
+// export default Chat
