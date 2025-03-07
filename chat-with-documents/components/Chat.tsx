@@ -10,7 +10,7 @@ import { db } from '@/firebase';
 import { collection, orderBy, query } from 'firebase/firestore';
 import { askQuestion } from '@/actions/askQuestion';
 import ChatMessage from './ChatMessage';
-// import ChatMessage from './ChatMessage';
+
 
 
 export type Message = {
@@ -40,13 +40,35 @@ const Chat = ({ id }: { id: string }) => {
         bottomOfChatRef.current?.scrollIntoView({ behavior: "smooth" });
     },[messages])
 
+    // useEffect(() => {
+    //     if (!snapshot) return;
+
+    //     console.log("📢 Updated snapshot from Firestore:", snapshot.docs);
+
+    //     const newMessages = snapshot.docs.map((doc) => ({
+    //         id: doc.id,
+    //         role: doc.data().role,
+    //         message: doc.data().message,
+    //         createdAt: doc.data().createdAt.toDate(),
+    //     }));
+
+    //     setMessages((prev) => {
+    //         // Prevent duplicate messages
+    //         const existingIds = new Set(prev.map((msg) => msg.id));
+    //         const filteredNewMessages = newMessages.filter((msg) => !existingIds.has(msg.id));
+
+    //         return [...prev, ...filteredNewMessages]; // ✅ Append new messages instead of replacing
+    //     });
+    // }, [snapshot]);
+
+
     useEffect(() => {
         if (!snapshot) return;
         console.log("Updated Snapshot: ", snapshot.docs);
 
         // get second last message to check if the AI is thinking
         const lastMessage = messages.pop();
-        if (lastMessage?.role === "ai" && lastMessage.message === "Thinking...") {
+        if (lastMessage?.role === "ai" && lastMessage?.message === "Thinking...") {
             return;
         }
         const newMessages = snapshot.docs.map(doc => {
@@ -59,7 +81,6 @@ const Chat = ({ id }: { id: string }) => {
             }
         });
         setMessages(newMessages);
-
     }, [snapshot]);
 
     const handleSubmit = async (e: FormEvent) => {
@@ -103,24 +124,19 @@ return (
                 </div>
                     
                 ):(
-                <div>
-                    {messages.map((message) => (
-                        <div key={message.id}>
-                            <p>{message.message}</p>
-                        </div>
-                    ))}
-                       {/* { messages.length === 0 && (
-                           <ChatMessage key={"placeholder"}
-                           message={{
-                              role: "ai",
-                              message: "Ask me anything about this document",
-                              createdAt: new Date(), 
-                           }} />
-                       )}
-                       {messages.map((message,index) => (
-                        <ChatMessage key={index} message={message} />
-                       ))} 
-                       <div ref={bottomOfChatRef} /> */}
+                <div className='p-5'>
+                        {messages.length === 0 && (
+                            <ChatMessage key={"placeholder"}
+                                message={{
+                                    role: "ai",
+                                    message: "Ask me anything about this document",
+                                    createdAt: new Date(),
+                                }} />
+                        )}
+                        {messages.map((message, index) => (
+                            <ChatMessage key={index} message={message} />
+                        ))}
+                        <div ref={bottomOfChatRef} /> 
                 </div>
                 )}
 

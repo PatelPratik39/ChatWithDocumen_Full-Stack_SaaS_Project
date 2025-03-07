@@ -43,7 +43,8 @@ export default async function ChatToFilePage({ params }: { params?: { id?: strin
             {/* Right */}
             <div className="col-span-5 lg:col-span-2 overflow-y-auto">{/* chat */}
                 {/* {id && <Chat id={id as string} />} */}
-                <Chat id={id as string} />
+                {/* <Chat id={id as string} /> */}
+                <Chat id={id} />
 
             </div>
 

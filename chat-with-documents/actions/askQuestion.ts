@@ -29,7 +29,7 @@ export async function askQuestion(id: string, question: string) {
     // limit the messages for PRO/Free users
 
     const userMessage:  Message = {
-        role: 'ai',
+        role: 'human',
         message: question,
         createdAt: new Date(),
     }
@@ -41,7 +41,7 @@ export async function askQuestion(id: string, question: string) {
 
     const aiMessage : Message = {
         role: 'ai',
-        message: reply,
+        message: reply || "I'm not sure about that.",
         createdAt: new Date(),
     };
 
@@ -49,7 +49,7 @@ export async function askQuestion(id: string, question: string) {
     
     return {
         success: true,
-        message: null
+        message: reply
     }
 }
 
