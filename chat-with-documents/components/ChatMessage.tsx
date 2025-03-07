@@ -37,7 +37,10 @@ const ChatMessage = ({message}: {message: Message}) => {
                         <Loader2Icon className="animate-spin h-7 w-7 text-cyan-600" />
                     </div>
                 ) : (
-                    <Markdown>{message.message}</Markdown>
+                      <div className="prose">
+
+                        <Markdown >{message.message}</Markdown>
+                    </div>
                 )}
         </div>
     </div>

@@ -1,6 +1,6 @@
 import Documents from "@/components/Documents"
 
-export const dynamic = 'force-dynamic'
+// export const dynamic = 'force-dynamic'
 
 const Dashboard = () => {
     return (

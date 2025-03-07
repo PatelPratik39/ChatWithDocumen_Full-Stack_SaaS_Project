@@ -57,7 +57,12 @@ const Chat = ({ id }: { id: string }) => {
                 createdAt: createdAt.toDate(),
             }
         });
-        setMessages(newMessages);
+        setMessages((prevMessages) => {
+            const humanMessages = prevMessages.filter(msg => msg.role === "human");
+            return [...humanMessages, ...newMessages];
+        });
+
+        // setMessages(newMessages);
     }, [snapshot]);
 
     const handleSubmit = async (e: FormEvent) => {

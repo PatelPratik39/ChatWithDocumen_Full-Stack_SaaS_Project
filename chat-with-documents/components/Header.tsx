@@ -7,7 +7,7 @@ import { FilePlus2 } from 'lucide-react'
 const Header = () => {
     return (
         <>
-            <div className='flex justify-between items-center h-20 bg-white shadow-md border-b px-4 md:px-8 lg:px-12 py-4"'>
+            <div className='flex justify-between items-center h-16 bg-white shadow-md border-b px-4 md:px-8  py-4"'>
                 <Link href='/dashboard'>Chat to <span className='text-cyan-600 text-lg font-semibold'>Document</span></Link>
                 <SignedIn>
                     <div className="flex items-center space-x-2 px-4 md:px-2 lg:px-2">
@@ -22,7 +22,9 @@ const Header = () => {
                             <Link href="/dashboard/upload"><FilePlus2 className='text-cyan-600 border-cyan-600'/></Link>
                         </Button>
                         {/* Upgrade Button */}
-                        <UserButton />
+                        <Button className="h-15 w-15 btn-circle border-none" variant="outline" >
+                            <UserButton  />
+                        </Button>
                     </div>
                 </SignedIn>
             </div>
