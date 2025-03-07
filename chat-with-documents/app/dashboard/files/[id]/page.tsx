@@ -5,8 +5,9 @@ import { adminDb } from "@/firebaseAdmin";
 import { auth } from "@clerk/nextjs/server";
 
 
-export default async function ChatToFilePage({ params }: { params?: { id?: string } }) {
-    const id = params?.id;
+export default async function ChatToFilePage({ params }: { params: Promise<{ id: string | undefined }> }) {
+    // const id = params?.id;
+    const id = (await params)?.id;
 
     if (!id) {
         console.error("❌ No ID provided");

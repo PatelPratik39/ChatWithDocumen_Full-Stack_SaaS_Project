@@ -7,7 +7,6 @@ const Document = ({
     id,
     name,
     size,
-    downloadUrl
 }: {
     id: string;
     name: string;

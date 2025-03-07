@@ -25,11 +25,11 @@ import { createHistoryAwareRetriever } from "langchain/chains/history_aware_retr
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
 import pineconeClient from "./pincone";
 import { PineconeStore } from "@langchain/pinecone";
-import { Pinecone, Index, RecordMetadata } from "@pinecone-database/pinecone";
-import { PineconeConflictError } from "@pinecone-database/pinecone/dist/errors";
+import {  Index, RecordMetadata } from "@pinecone-database/pinecone";
+// import { PineconeConflictError } from "@pinecone-database/pinecone/dist/errors";
 import { adminDb } from "@/firebaseAdmin";
 import {auth} from "@clerk/nextjs/server"
-import { doc } from "firebase/firestore";
+
 
 
 const model = new ChatOpenAI({  

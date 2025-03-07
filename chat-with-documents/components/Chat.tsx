@@ -12,7 +12,6 @@ import { askQuestion } from '@/actions/askQuestion';
 import ChatMessage from './ChatMessage';
 
 
-
 export type Message = {
     id?: string;
     role: "human" | "ai" | "placeholder";
@@ -29,7 +28,7 @@ const Chat = ({ id }: { id: string }) => {
 
     const bottomOfChatRef = useRef<HTMLDivElement>(null);
 
-    const [snapshot, loading, error] = useCollection(
+    const [snapshot, loading] = useCollection(
         user && query(
             collection(db, "users", user?.id, "files", id, "chat"),
             orderBy('createdAt', 'asc')
@@ -38,7 +37,7 @@ const Chat = ({ id }: { id: string }) => {
 
     useEffect(() => {
         bottomOfChatRef.current?.scrollIntoView({ behavior: "smooth" });
-    },[messages])
+    },[])
     useEffect(() => {
         if (!snapshot) return;
         console.log("Updated Snapshot: ", snapshot.docs);
@@ -63,7 +62,7 @@ const Chat = ({ id }: { id: string }) => {
         });
 
         // setMessages(newMessages);
-    }, [snapshot]);
+    }, [snapshot, messages]);
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();

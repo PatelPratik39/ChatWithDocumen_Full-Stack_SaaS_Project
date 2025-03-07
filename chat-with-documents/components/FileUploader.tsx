@@ -67,17 +67,16 @@ const FileUploader = () => {
       {uploadInProgress && (
         <div className="mt-32 flex flex-col items-center justify-center gap-5">
           <div
-            // @ts-ignore
+           
             className={`radial-progress text-cyan-600 border-cyan-600 border-4 ${
               progress === 100 && "hidden"
             }`}
             role="progressbar"
             style={{
-                // @ts-ignore
               "--value": progress,
               "--size": "12rem",
               "--thickness": "1.3rem"
-            }}
+            } as React.CSSProperties}
           >
             {progress}%{" "}
           </div>
