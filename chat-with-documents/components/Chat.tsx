@@ -39,29 +39,6 @@ const Chat = ({ id }: { id: string }) => {
     useEffect(() => {
         bottomOfChatRef.current?.scrollIntoView({ behavior: "smooth" });
     },[messages])
-
-    // useEffect(() => {
-    //     if (!snapshot) return;
-
-    //     console.log("📢 Updated snapshot from Firestore:", snapshot.docs);
-
-    //     const newMessages = snapshot.docs.map((doc) => ({
-    //         id: doc.id,
-    //         role: doc.data().role,
-    //         message: doc.data().message,
-    //         createdAt: doc.data().createdAt.toDate(),
-    //     }));
-
-    //     setMessages((prev) => {
-    //         // Prevent duplicate messages
-    //         const existingIds = new Set(prev.map((msg) => msg.id));
-    //         const filteredNewMessages = newMessages.filter((msg) => !existingIds.has(msg.id));
-
-    //         return [...prev, ...filteredNewMessages]; // ✅ Append new messages instead of replacing
-    //     });
-    // }, [snapshot]);
-
-
     useEffect(() => {
         if (!snapshot) return;
         console.log("Updated Snapshot: ", snapshot.docs);
