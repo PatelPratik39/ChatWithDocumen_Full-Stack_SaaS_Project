@@ -34,45 +34,17 @@ const FileUploader = () => {
     }
   }, [fileId, router]);
 
-  
-
-
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     // Do something with the files
-
-    if (acceptedFiles.length === 0) {
-      console.warn("⚠ No file selected.");
-      return;
-    }
     console.log(acceptedFiles);
     const file = acceptedFiles[0];
-    console.log("📂 File selected:", file);
     if (file) {
       await handleUpload(file);
-      console.log("✅ Upload successful!");
     } else {
-      
       // do nothting
       // toast
     }
-  }, [handleUpload]);
-
-  useEffect(() => {
-    const preventDefaults = (e: Event) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-
-    ["dragenter", "dragover", "dragleave", "drop"].forEach((event) =>
-      document.addEventListener(event, preventDefaults, false)
-    );
-
-    return () => {
-      ["dragenter", "dragover", "dragleave", "drop"].forEach((event) =>
-        document.removeEventListener(event, preventDefaults, false)
-      );
-    };
   }, []);
 
   const statusIcon = {
@@ -85,18 +57,8 @@ const FileUploader = () => {
   };
   const { getRootProps, getInputProps, isDragActive, isFocused } = useDropzone({
     onDrop,
-    // onDrop: (files) => {
-    //   console.log("Dropped files:", files);
-    // },
     maxFiles: 1,
-    accept: {}
-    // accept: {
-    //   "application/pdf": [".pdf"], // Allow PDFs
-    //   "application/vnd.ms-excel": [".xls"], // Allow old Excel format
-    //   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"], // Allow modern Excel format
-    //   "text/csv": [".csv"], // Allow CSV files
-    // },
-    // accept: { "application/pdf": [".pdf"] }
+    accept: { "application/pdf": [".pdf"] }
   });
   const uploadInProgress = progress != null && progress >= 0 && progress <= 100;
   return (
