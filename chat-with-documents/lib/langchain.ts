@@ -176,7 +176,11 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
 
     // ✅ Step 2: Create Retriever
     console.log("📚 [Step 3] Creating Retriever...");
-    const retriever = pineconeVectorStore.asRetriever();
+    // const retriever = pineconeVectorStore.asRetriever();
+    const retriever = pineconeVectorStore.asRetriever({
+        filter: { doc_id: docId }, // ✅ Restricts search to only the document ID
+    });
+
 
     // ✅ Step 3: Fetch Chat History
     console.log("📜 [Step 4] Fetching chat history...");
@@ -203,11 +207,21 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
 
     // ✅ Step 5: Create Prompt for Answer Generation
     console.log("🛠️ [Step 7] Creating Answer Generation Prompt...");
+    // const historyAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
+    //     ["system", "Answer the user's questions based on the below context:\n\n{context}"],
+    //     ...chatHistory,
+    //     ["user", "{input}"],
+    // ]);
     const historyAwareRetrievalPrompt = ChatPromptTemplate.fromMessages([
-        ["system", "Answer the user's questions based on the below context:\n\n{context}"],
-        ...chatHistory,
-        ["user", "{input}"],
-    ]);
+    ["system", 
+        "You are an AI assistant that strictly answers questions using the provided document context. " +
+        "If the answer is not found in the document, respond with 'I can not provide you Answer outside of the document'. " +
+        "Do NOT use outside knowledge. Only use the retrieved content below:\n\n{context}"
+    ],
+    ...chatHistory,
+    ["user", "{input}"],
+]);
+
 
     // ✅ Step 6: Create Document Combining Chain
     console.log("📑 [Step 8] Creating Document Combining Chain...");
@@ -217,6 +231,11 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
     });
 
     // ✅ Step 7: Create Conversational Retrieval Chain
+    
+    const retrievedDocs = await retriever.getRelevantDocuments(question);
+        if (!retrievedDocs || retrievedDocs.length === 0) {
+            return "I couldn't find the answer in the document. Please try rephrasing your question.";
+        }
     console.log("🔗 [Step 9] Creating Conversational Retrieval Chain...");
     const conversationalRetrievalChain = await createRetrievalChain({
         retriever: historyAwareRetrieverChain,
@@ -231,7 +250,11 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
     });
 
     // ✅ Handle response
-    const finalResponse = reply?.answer ?? "❌ No response generated.";
+    // const finalResponse = reply?.answer ?? "❌ No response generated.";
+    const finalResponse = retrievedDocs.length > 0 
+    ? reply.answer 
+    : "I couldn't find relevant information in the document. please ask the question based on document.";
+
     console.log("🤖 [Step 11] AI Response: ", finalResponse);
 
     return finalResponse;

@@ -25,6 +25,7 @@ const Chat = ({ id }: { id: string }) => {
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [isPending, startTransition] = useTransition();
+    const inputRef = useRef<HTMLInputElement>(null);
 
     const bottomOfChatRef = useRef<HTMLDivElement>(null);
 
@@ -36,8 +37,11 @@ const Chat = ({ id }: { id: string }) => {
     );
 
     useEffect(() => {
-        bottomOfChatRef.current?.scrollIntoView({ behavior: "smooth" });
-    },[])
+        if (bottomOfChatRef.current) {
+            bottomOfChatRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+    }, [messages]);
+
     useEffect(() => {
         if (!snapshot) return;
         console.log("Updated Snapshot: ", snapshot.docs);
@@ -125,10 +129,12 @@ const Chat = ({ id }: { id: string }) => {
                 className="flex sticky bottom-0 space-x-2 p-5 bg-gradient-to-r from-cyan-600 to-blue-400 border-t border-cyan-700"
             >
                 <Input
+                    ref={inputRef}
                     placeholder="Ask a question"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     className="border bg-white border-cyan-600 rounded-lg px-4 py-2"
+                    autoFocus={false}
                 />
                 <Button
                     type="submit"
