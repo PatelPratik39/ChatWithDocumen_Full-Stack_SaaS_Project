@@ -177,9 +177,24 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
     // ✅ Step 2: Create Retriever
     console.log("📚 [Step 3] Creating Retriever...");
     // const retriever = pineconeVectorStore.asRetriever();
+    // const retriever = pineconeVectorStore.asRetriever({
+    //     filter: { doc_id: docId }, // ✅ Restricts search to only the document ID
+    // });
+
+    // Create retriever without restrictive filters
     const retriever = pineconeVectorStore.asRetriever({
-        filter: { doc_id: docId }, // ✅ Restricts search to only the document ID
+        searchType: "similarity",
+            k: 5 ,
     });
+
+    // Check what is retrieved
+    // const retrievedDocs = await retriever.getRelevantDocuments(question);
+    // console.log("✅ Retrieved documents:", retrievedDocs);
+
+    // if (retrievedDocs.length === 0) {
+    //     return "I couldn't find the answer in the document. Please try rephrasing your question.";
+    // }
+
 
 
     // ✅ Step 3: Fetch Chat History
@@ -193,8 +208,8 @@ const generateLangchainCompletion = async (docId: string, question: string) => {
     // ✅ Step 4: Create History-Aware Retriever
     console.log("📝 [Step 5] Creating History-Aware Retriever...");
     const historyAwarePrompt = ChatPromptTemplate.fromMessages([
-        ...chatHistory,
         ["user", "{input}"],
+        ...chatHistory,
         ["user", "Given the above conversation, generate a search query to look up in order to get relevant information."]
     ]);
 
