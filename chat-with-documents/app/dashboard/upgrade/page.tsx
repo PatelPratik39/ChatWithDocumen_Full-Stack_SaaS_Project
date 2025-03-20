@@ -1,9 +1,52 @@
+
+"use client"; // ✅ Makes this a Client Component
+
+import { useRouter } from "next/navigation";
 import { Button } from '@/components/ui/button';
 import { CheckIcon } from 'lucide-react';
-import React from 'react'
-import Documents from '@/components/Documents';
+import React, { useTransition } from 'react'
+import { useUser } from '@clerk/nextjs';
+import useSubscription from "@/hooks/useSubscription";
+import { Stripe } from '@stripe/stripe-js';
+import getStripe from "@/lib/stripe-js";
+
+export type UserDetails = {
+    email: string;
+    name: string;
+}
 
 const PricingPage = () => {
+
+    const { user } = useUser();
+    const router = useRouter();
+    const { hasActiveMemberShip, loading } = useSubscription();
+    const [isPending, startTransition] = useTransition();
+
+    const handleUpgrade =  () => {
+        if (!user) return;
+        const userDetails: UserDetails = {
+            email: user.primaryEmailAddress?.toString()!,
+            name: user.fullName!,
+        }
+
+        startTransition( async() => {
+            // Load stripe
+            const stripe = await getStripe();
+            if(!stripe) return;
+
+            if(hasActiveMemberShip){
+                // create Stripe portal.....
+            }
+
+            const sesseionId = await createCheckoutSession(userDetails);
+
+            await stripe?.redirectToCheckout({
+                sesseionId,
+            })
+
+        })
+    }
+
     return (
         <>
             <div className='py-24 sm:py-32'>
@@ -49,8 +92,11 @@ const PricingPage = () => {
                                 <span className='text-sm font-semibold leading-6 text-gray-600'> / month</span>
                             </p>
                             <Button className='bg-cyan-600 w-full text-white shadow-sm hover:bg-cyan-500 mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold
-                            leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600'>
-                                Upgrade to PRO
+                            leading-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-600'
+                                disabled={loading || isPending}
+                                onClick={handleUpgrade}
+                            >
+                                {isPending || loading ? "Loading..." : hasActiveMemberShip ? "Manage Plan" : "Upgrade to PRO"}Upgrade to PRO
                             </Button>
                             <ul role='list' className='mt-8 space-y-3 text-sm leading-6 text-gray-600'>
                                 <li className='flex gap-x-3'>
@@ -75,7 +121,7 @@ const PricingPage = () => {
                                 </li>
                                 <li className='flex gap-x-3'>
                                     <CheckIcon className='h-6 w-5 flex-none text-cyan-600' />
-                                    24-hours support response time 
+                                    24-hours support response time
                                 </li>
                             </ul>
                         </div>
