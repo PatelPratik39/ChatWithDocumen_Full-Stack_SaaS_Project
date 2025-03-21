@@ -38,6 +38,7 @@
     "react-hot-toast": "^2.5.2",
     "react-markdown": "^10.0.1",
     "react-pdf": "^9.2.1",
+    "stripe": "^17.7.0",
     "tailwind-merge": "^3.0.1",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0"

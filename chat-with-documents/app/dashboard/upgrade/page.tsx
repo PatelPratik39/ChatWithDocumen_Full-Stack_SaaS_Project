@@ -7,8 +7,8 @@ import { CheckIcon } from 'lucide-react';
 import React, { useTransition } from 'react'
 import { useUser } from '@clerk/nextjs';
 import useSubscription from "@/hooks/useSubscription";
-import { Stripe } from '@stripe/stripe-js';
 import getStripe from "@/lib/stripe-js";
+import { createCheckoutSession } from "@/actions/createCheckoutSession";
 
 export type UserDetails = {
     email: string;
@@ -38,10 +38,11 @@ const PricingPage = () => {
                 // create Stripe portal.....
             }
 
-            const sesseionId = await createCheckoutSession(userDetails);
+            const sessionId = await createCheckoutSession(userDetails);
 
             await stripe?.redirectToCheckout({
-                sesseionId,
+                sessionId,
+                
             })
 
         })
