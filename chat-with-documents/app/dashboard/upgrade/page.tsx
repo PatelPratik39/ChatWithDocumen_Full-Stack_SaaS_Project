@@ -42,7 +42,7 @@ const PricingPage = () => {
 
             await stripe?.redirectToCheckout({
                 sessionId,
-                
+
             })
 
         })
@@ -97,7 +97,7 @@ const PricingPage = () => {
                                 disabled={loading || isPending}
                                 onClick={handleUpgrade}
                             >
-                                {isPending || loading ? "Loading..." : hasActiveMemberShip ? "Manage Plan" : "Upgrade to PRO"}Upgrade to PRO
+                                {isPending || loading ? "Loading..." : hasActiveMemberShip ? "Manage Plan" : "Upgrade to PRO"}
                             </Button>
                             <ul role='list' className='mt-8 space-y-3 text-sm leading-6 text-gray-600'>
                                 <li className='flex gap-x-3'>
