@@ -9,3 +9,6 @@ if(!stripeSecretKey){
 const stripe = new Stripe(stripeSecretKey);
 
 export default stripe;
+
+
+// this is server side Stripe class

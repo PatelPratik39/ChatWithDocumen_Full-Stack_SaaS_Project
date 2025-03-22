@@ -44,7 +44,6 @@ const PricingPage = () => {
                 sessionId,
 
             })
-
         })
     }
 

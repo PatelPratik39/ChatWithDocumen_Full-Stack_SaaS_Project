@@ -6,7 +6,9 @@ import { adminDb } from '@/firebaseAdmin';
 import stripe from '@/lib/stripe';
 import getBaseUrl from '@/lib/getBaseUrl';
 
-export async function createCheckoutSession(UserDetails: UserDetails) {
+export async function createCheckoutSession(userDetails: UserDetails) {
+
+    try{
     // auth();
     const {userId} = await auth();
     if(!userId){
@@ -18,29 +20,36 @@ export async function createCheckoutSession(UserDetails: UserDetails) {
 
     const user = await adminDb.collection('users').doc(userId).get();
     stripeCustomerId = user.data()?.stripeCustomerId;
+    if (!user.exists) {
+        console.log(`⚠️ No Firestore user found for userId: ${userId}`);
+    }
+
 
     if(!stripeCustomerId){
         // create a new customer in stripe
 
         const customer = await stripe.customers.create({
-            email: UserDetails.email,
-            name: UserDetails.name,
+            email: userDetails.email,
+            name: userDetails.name,
             metadata:{
                 userId, 
             }
         });
+
         // store the customer id to database
         await adminDb.collection('users').doc(userId).set({
             stripeCustomerId: customer.id,
-        });
+        },{merge: true});
         stripeCustomerId = customer.id;
+        console.log("✅ [Step 1] Created Stripe Customer:", customer.id);
+        
     }
-
+    //  Create Stripe Checkout session
     const session =  await stripe.checkout.sessions.create({
         payment_method_types: ['card'], 
         line_items: [
             {
-                price: "price_1R58nMCdn0HlYtcbzssQOH9y", 
+                price: "price_1R5WpEKH04LixpG7Q1Kho9M3", 
                 quantity: 1,
             }
         ],
@@ -50,4 +59,8 @@ export async function createCheckoutSession(UserDetails: UserDetails) {
         cancel_url: `${getBaseUrl()}/upgrade`,
     });
     return session.id;
+    } catch (err) {
+    console.error("❌ Error creating Stripe checkout session:", err);
+    throw err;
+  }
 }
