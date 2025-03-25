@@ -31,7 +31,7 @@ function useSubscription(){
 
         const data = snapshot.data();
         if(!data) return;
-        setHasActiveMemberShip(data.isActiveMemberShip);
+        setHasActiveMemberShip(data.hasActiveMemberShip);
 
     }, [snapshot])
 

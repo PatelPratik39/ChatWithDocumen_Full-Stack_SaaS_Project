@@ -88,7 +88,7 @@ const PricingPage = () => {
                             </h3>
                             <p className='mt-4 text-sm leading-6 text-cyan-600'> Maximize Productivity with PRO Features</p>
                             <p className='mt-6 flex items-baseline gap-x-1'>
-                                <span className='text-4xl font-bold tracking-tight text-gray-900'> $5.99</span>
+                                <span className='text-4xl font-bold tracking-tight text-gray-900'> $6.99</span>
                                 <span className='text-sm font-semibold leading-6 text-gray-600'> / month</span>
                             </p>
                             <Button className='bg-cyan-600 w-full text-white shadow-sm hover:bg-cyan-500 mt-6 block rounded-md px-3 py-2 text-center text-sm font-semibold
